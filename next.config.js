@@ -8,6 +8,6 @@ module.exports = {
         ignoreBuildErrors: false,
     },
     images: {
-        domains: ['gatherer.wizards.com'],
+        domains: ['gatherer.wizards.com', 'c1.scryfall.com'],
     },
 };

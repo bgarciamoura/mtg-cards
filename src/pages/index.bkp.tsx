@@ -2,9 +2,15 @@ import styled from 'styled-components';
 import { GetServerSideProps } from 'next';
 import { useEffect, useState } from 'react';
 import ReactPaginate from 'react-paginate';
-import axios, { AxiosResponse } from 'axios';
+import axios from 'axios';
 import Router, { useRouter } from 'next/router';
 import Image from 'next/image';
+
+interface Card {
+    name: string;
+    id: string;
+    imageUrl: string;
+}
 
 interface HomeProps {
     meta: {
@@ -14,49 +20,26 @@ interface HomeProps {
         currentPage: string;
         perPage: string;
     };
-    cards: Array<Cards>;
-}
-
-interface ApiResponse {
-    object: string;
-    total_cards: number;
-    has_more: boolean;
-    next_page: string;
-    data: Array<Cards>;
-}
-
-interface Cards {
-    id: string;
-    name: string;
-    image_uris: {
-        small: string;
-        normal: string;
-        large: string;
-        png: string;
-        art_crop: string;
-        border_crop: string;
-    };
+    cards: Array<Card>;
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
     const { page } = context.query || 1;
     let response = {};
     try {
-        const apiResponse: AxiosResponse<ApiResponse> = await axios
-            .get(`https://api.scryfall.com/cards/search?q=year%3E=1993&page=${page}`)
-            .then((res) => {
-                return res;
-            });
+        const apiResponse = await axios
+            .get(`https://api.magicthegathering.io/v1/cards?page=${page}&pageSize=10&orderBy=name`)
+            .then((res) => res);
 
         response = {
             meta: {
                 success: true,
-                totalCount: apiResponse.data.total_cards,
-                pageCount: Math.ceil(apiResponse.data.total_cards / 175),
+                totalCount: apiResponse.headers['total-count'],
+                pageCount: apiResponse.headers['total-count'] / apiResponse.headers['page-size'],
                 currentPage: page,
-                perPage: 175,
+                perPage: apiResponse.headers['page-size'],
             },
-            cards: [...apiResponse.data.data],
+            cards: [...apiResponse.data.cards],
         };
     } catch (error) {
         throw new Error('Erro na Home: ' + error);
@@ -115,12 +98,12 @@ const Home: React.FC<{ homeProps: HomeProps }> = ({ homeProps }) => {
                     <div className='loading'>Buscando as cartas, aguarde...</div>
                 ) : (
                     <ul className='cards-list'>
-                        {cards.map((card: Cards) => (
+                        {cards.map((card: Card) => (
                             <li key={card.id}>
                                 <span>{card.name}</span>
 
-                                {card.image_uris ? (
-                                    <Image className='card-image' src={card.image_uris.png} layout='fill' />
+                                {card.imageUrl ? (
+                                    <Image className='card-image' src={card.imageUrl} layout='fill' />
                                 ) : (
                                     <Image
                                         className='card-image'
