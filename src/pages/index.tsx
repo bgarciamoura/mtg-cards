@@ -26,7 +26,7 @@ interface HomeProps {
 export const getServerSideProps: GetServerSideProps = async (context) => {
     const { page } = context.query || 1;
     let result = undefined;
-    const path = `${process.env.base_api_url}/cards/?page=${page}`;
+    const path = `${process.env.NEXT_PUBLIC_VERCEL_URL}/cards/?page=${page}`;
     try {
         result = await axios.get(path).then((res) => {
             return res.data;
