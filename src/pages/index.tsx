@@ -28,7 +28,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     let result = undefined;
     const path = `${process.env.base_api_url}/cards/?page=${page}`;
     try {
-        result = await axios.get(`https://mtg-cards.vercel.app/api/cards/?page=${page}`).then((res) => {
+        result = await axios.get(path).then((res) => {
             return res.data;
         });
     } catch (error) {
