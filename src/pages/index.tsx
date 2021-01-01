@@ -25,18 +25,28 @@ interface HomeProps {
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
     const { page } = context.query || 1;
-    let result = undefined;
-    const path = `${process.env.NEXT_PUBLIC_VERCEL_URL}/cards/?page=${page}`;
+    let response = {};
     try {
-        result = await axios.get(path).then((res) => {
-            return res.data;
-        });
+        const apiResponse = await axios
+            .get(`https://api.magicthegathering.io/v1/cards?page=${page}&pageSize=10&orderBy=name`)
+            .then((res) => res);
+
+        response = {
+            meta: {
+                success: true,
+                totalCount: apiResponse.headers['total-count'],
+                pageCount: apiResponse.headers['total-count'] / apiResponse.headers['page-size'],
+                currentPage: page,
+                perPage: apiResponse.headers['page-size'],
+            },
+            cards: [...apiResponse.data.cards],
+        };
     } catch (error) {
         throw new Error('Erro na Home: ' + error);
     }
     return {
         props: {
-            homeProps: result,
+            homeProps: response,
         },
     };
 };
